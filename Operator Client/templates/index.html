@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Robocar Operator UI</title>
+</head>
+<body>
+    <h2>Robocar Control Panel</h2>
+
+    <style>
+        .control-panel { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 200px; margin: 20px 0; }
+        button { padding: 15px; font-size: 16px; cursor: pointer; }
+    </style>
+
+    <div class="control-panel">
+        <div></div>
+        <button onclick="send('FWD')">▲</button>
+        <div></div>
+        <button onclick="send('LEFT')">◀</button>
+        <button onclick="send('STOP')">■</button>
+        <button onclick="send('RIGHT')">▶</button>
+        <div></div>
+        <button onclick="send('BACK')">▼</button>
+        <div></div>
+    </div>
+
+    <p>Status: <span id="status">---</span></p>
+
+    <img src="/video" width="640" style="border: 2px solid #333;" />
+
+   <script>
+  function send(cmd) {
+    fetch('/cmd/' + cmd);
+  }
+
+  setInterval(() => {
+    fetch('/status')
+      .then(r => r.json())
+      .then(d => {
+        document.getElementById('status').innerText = d.last_ack;
+      });
+  }, 500);
+</script>
+</body>
+</html>

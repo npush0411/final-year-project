@@ -3,7 +3,7 @@ import time
 
 from state_machine import StateMachine, RobotState
 from comm.comm_thread import CommThread
-from video.video_thread import VideoThread
+from camera.camera_thread import CameraThread
 
 # --------------------------------------------------
 # State Machine Initialization
@@ -11,22 +11,10 @@ from video.video_thread import VideoThread
 state_machine = StateMachine()
 state_machine.set_state(RobotState.IDLE)
 
-# --------------------------------------------------
-# Dummy Threads (still placeholders)
-# --------------------------------------------------
-def camera_thread():
-    while True:
-        print("[CAMERA] Running")
-        time.sleep(1)
-
-def lidar_thread():
-    while True:
-        print("[LIDAR] Running")
-        time.sleep(1)
 
 def supervisor_thread():
     while True:
-        print("[SUPERVISOR] Monitoring")
+        print("[SUPERVISOR] Monitoring system health")
         time.sleep(2)
 
 # --------------------------------------------------
@@ -38,22 +26,21 @@ def comm_runner():
     comm.run()
 
 # --------------------------------------------------
-# REAL VIDEO STREAM THREAD (FILE BASED)
+# REAL VIDEO STREAM THREAD (USB CAMERA)
 # --------------------------------------------------
-video = VideoThread(video_path="sample_video.mp4")
+camera = CameraThread()
 
-def video_runner():
-    video.run()
+def camera_runner():
+    camera.run()
 
 # --------------------------------------------------
 # Thread Creation
 # --------------------------------------------------
 threads = [
-    threading.Thread(target=camera_thread, daemon=True),
-    threading.Thread(target=lidar_thread, daemon=True),
+    threading.Thread(target=camera_runner, daemon=True),
+    # threading.Thread(target=lidar_thread, daemon=True),
     threading.Thread(target=supervisor_thread, daemon=True),
     threading.Thread(target=comm_runner, daemon=True),
-    threading.Thread(target=video_runner, daemon=True)
 ]
 
 # --------------------------------------------------
@@ -62,8 +49,10 @@ threads = [
 for t in threads:
     t.start()
 
+print("[SYSTEM] All threads started successfully")
+
 # --------------------------------------------------
-# Keep Main Alive
+# Keep Main Process Alive
 # --------------------------------------------------
 while True:
     time.sleep(5)

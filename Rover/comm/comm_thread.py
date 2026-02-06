@@ -42,6 +42,8 @@ class CommThread:
                 self.state_machine.set_state(RobotState.IDLE)
 
         elif msg.startswith("CMD:"):
+            cmd = msg.split(":")[1]
+            print(f"[COMM] Recv Command: {cmd}")
             self.send_ack("ACK:CMD\n")
             self.state_machine.set_state(RobotState.MANUAL_CONTROL)
 
