@@ -29,6 +29,18 @@
           <span class="status-label">Last Ping</span>
           <span id="ping-val" class="status-value">-- ms</span>
         </div>
+        <div class="status-box">
+          <span class="status-label">Gas Sensor</span>
+          <span id="gas-status" class="status-value" style="color: #00ff41;">CLEAR</span>
+        </div>
+        <div class="status-box">
+          <span class="status-label">Metal Det.</span>
+          <span id="metal-status" class="status-value" style="color: #00ff41;">CLEAR</span>
+        </div>
+        <div class="status-box">
+          <span class="status-label">Obstacle</span>
+          <span id="obs-status" class="status-value" style="color: #00ff41;">CLEAR</span>
+        </div>
       </div>
 
       <div class="crosshair"></div>
@@ -68,6 +80,46 @@
 
           // Simple simulated ping based on ack update
           document.getElementById('ping-val').innerText = d.last_ack ? "ACTIVE" : "IDLE";
+          
+          if (d.sensors) {
+              const gas = document.getElementById('gas-status');
+              if (d.sensors.gas) {
+                  gas.innerText = "DETECTED";
+                  gas.style.color = "#ff0055";
+                  gas.classList.add('alert-flash');
+              } else {
+                  gas.innerText = "CLEAR";
+                  gas.style.color = "#00ff41";
+                  gas.classList.remove('alert-flash');
+              }
+              
+              const metal = document.getElementById('metal-status');
+              if (d.sensors.metal) {
+                  metal.innerText = "DETECTED";
+                  metal.style.color = "#ff0055";
+                  metal.classList.add('alert-flash');
+              } else {
+                  metal.innerText = "CLEAR";
+                  metal.style.color = "#00ff41";
+                  metal.classList.remove('alert-flash');
+              }
+              
+              const obs = document.getElementById('obs-status');
+              if (d.sensors.obstacle_dist !== undefined && d.sensors.obstacle_dist !== -1.0) {
+                  obs.innerText = d.sensors.obstacle_dist.toFixed(1) + " cm";
+                  if (d.sensors.obstacle_dist <= 20.0) {
+                      obs.style.color = "#ff0055";
+                      obs.classList.add('alert-flash');
+                  } else {
+                      obs.style.color = "#00ff41";
+                      obs.classList.remove('alert-flash');
+                  }
+              } else {
+                  obs.innerText = "NO SIGNAL";
+                  obs.style.color = "#ff0055";
+                  obs.classList.remove('alert-flash');
+              }
+          }
         })
         .catch(e => {
           document.getElementById('connection-status').innerText = "DISCONNECTED";

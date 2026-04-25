@@ -150,3 +150,14 @@ body {
 .corner-tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
 .corner-bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
 .corner-br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+
+@keyframes flash {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.alert-flash {
+    animation: flash 0.5s infinite;
+    text-shadow: 0 0 10px #ff0055;
+}
