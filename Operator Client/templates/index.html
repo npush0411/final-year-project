@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>S.C.O.U.T. Operator Terminal</title>
+  <title>AgraNetra Operator Terminal</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 
@@ -65,6 +65,11 @@
       <div class="popup-content">PATH BLOCKED<br><span style="font-size: 1.2rem; color: #fff;">Forward Movement
           Disabled</span></div>
     </div>
+
+    <!-- Destroy Popup -->
+    <div id="destroy-popup" class="popup-overlay" style="display: none; background: rgba(255, 0, 0, 0.5);">
+      <div class="popup-content" style="color: #fff; text-shadow: 0 0 10px #ff0000;">DESTRUCTION IN PROGRESS...</div>
+    </div>
   </div>
 
   <script>
@@ -81,6 +86,8 @@
     let sweepTimer = null;
     let sweeping = false;
     let sweepDistances = { FWD: -1, LEFT: -1, RIGHT: -1 };
+    let destroyConfirmPending = false;
+    let destroyConfirmTimeout = null;
 
     // --- Network ---
     function send(cmd) {
@@ -127,7 +134,7 @@
             if (d.sensors.obstacle_dist !== undefined && d.sensors.obstacle_dist !== -1.0) {
               currentObstacleDist = d.sensors.obstacle_dist;
               obs.innerText = d.sensors.obstacle_dist.toFixed(1) + " cm";
-              if (d.sensors.obstacle_dist <= 80) {
+              if (d.sensors.obstacle_dist <= 20) {
                 obs.style.color = "#ff0055";
                 obs.classList.add('alert-flash');
               } else {
@@ -136,7 +143,7 @@
               }
 
               // In Manual mode, if we are moving forward and an obstacle appears, stop automatically
-              if (mode === 'MANUAL' && currentObstacleDist <= 80 && activeKey === 'ArrowUp') {
+              if (mode === 'MANUAL' && currentObstacleDist <= 70 && activeKey === 'ArrowUp') {
                 send('STOP');
                 activeKey = null;
                 showPopup();
@@ -239,7 +246,7 @@
         bestDir = 'FWD';
       }
 
-      if (bestDist <= 80) {
+      if (bestDist <= 70) {
         // All blocked! Back up to get out of the blocked state
         send('BACK');
         setTimeout(() => {
@@ -293,7 +300,7 @@
         if (mode === 'AUTO' && !sweeping) {
           startSweep();
         }
-      }, 8000); // Trigger sweep every 6 seconds
+      }, 2000); // Trigger sweep every 6 seconds
     }
 
     function toggleMode() {
@@ -304,7 +311,7 @@
         autoState = 'FORWARD';
         sweeping = false;
 
-        if (currentObstacleDist > 80 || currentObstacleDist === -1) {
+        if (currentObstacleDist > 20 || currentObstacleDist === -1) {
           send('FWD');
           resetSweepTimer();
         } else {
@@ -325,7 +332,7 @@
       if (currentObstacleDist === -1) return;
       if (sweeping) return;
 
-      if (currentObstacleDist <= 80) {
+      if (currentObstacleDist <= 20) {
         // Blocked! Initiate sweep immediately
         startSweep();
       } else {
@@ -351,6 +358,36 @@
     let activeKey = null;
 
     document.addEventListener('keydown', (e) => {
+      if (e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        if (e.repeat) return;
+        
+        const popup = document.getElementById('destroy-popup');
+        
+        if (!destroyConfirmPending) {
+          destroyConfirmPending = true;
+          popup.querySelector('.popup-content').innerHTML = 'PRESS D AGAIN TO CONFIRM DESTRUCTION';
+          popup.style.display = 'flex';
+          
+          destroyConfirmTimeout = setTimeout(() => {
+            destroyConfirmPending = false;
+            popup.style.display = 'none';
+            popup.querySelector('.popup-content').innerHTML = 'DESTRUCTION IN PROGRESS...';
+          }, 3000);
+        } else {
+          clearTimeout(destroyConfirmTimeout);
+          destroyConfirmPending = false;
+          popup.querySelector('.popup-content').innerHTML = 'DESTRUCTION IN PROGRESS...';
+          
+          // After 1 second, send DESTROY command
+          setTimeout(() => {
+            send('DESTROY');
+            popup.style.display = 'none';
+          }, 1000);
+        }
+        return;
+      }
+
       if (e.key.toLowerCase() === 'm') {
         e.preventDefault();
         if (e.repeat) return;
